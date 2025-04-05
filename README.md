@@ -404,7 +404,7 @@ Create new Experiment
 - Name: What's New version 2
 - Hypothesis: If I make the Learn More button stand out (bigger and more colourful), it will result in more user click
 - Type: Feature change
-- Randomization Unit: Unit
+- Randomization Unit: User
 - Attributes: select a few, e.g. timezone, browser, roles, os
 - Metrics: `Learn More Clicked`
 - Flag: `What's new v2`
