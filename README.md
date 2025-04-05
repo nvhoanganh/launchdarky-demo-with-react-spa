@@ -424,3 +424,67 @@ After sometime, go to `What's New version 2` experiement, you should see somethi
 ![Launch Darkly Experiment](image-1.png)
 
 
+# Remediate, turn off problematic feature using trigger and Launch Darkly + New Relic One Integrations
+
+You can use Triggers (webhook) to turn a feature off remotely (e.g. by a third party systems like New Relic). Imagine our developer added this line of code
+
+Edit `todomvc.tsx` file as follow
+```jsx
+const addTodo = async () => {
+    // show encouraging message to the user when they completed a todo
+    const lastFinishedTodo = finishedTodos[finishedTodos.length - 1];
+    alert(`Don't worry, you will get this one completed as quickly as "${lastFinishedTodo.text}" task`);
+    // ... existing code
+}
+```
+
+However, if user hasn't completed any task, this exception will be thrown 
+
+`> Unhandled Promise Rejection: TypeError: Unhandled Promise Rejection: undefined is not an object (evaluating 'lastFinishedTodo.text')`
+
+Let's see how we can use LaunchDarkly's integration with New Relic and have this problematic feature turned off remotely
+
+### Steps
+
+First, as good practice, if you are not sure, you should always wrap your changes in a Feature Flag
+
+Go to https://app.launchdarkly.com/projects/default/flags and create a new Flag:
+- name: `Todo v2`
+- Category: `Release`
+- Type: `Boolean`
+- Variations: `Enabled` (true) and `Disabled` (false)
+- Default variations: `Enabled` for both Target ON and `Disabled` when OFF
+
+Modify todomvc.tsx
+
+```jsx
+// ... existing code
+import { withLDConsumer } from 'launchdarkly-react-client-sdk';
+
+const TodosMvc = ({flags}) => {
+    if (flags.todoV2) {
+        const lastFinishedTodo = finishedTodos[finishedTodos.length - 1];
+        alert(`Don't worry, you will get this one completed as quickly as "${lastFinishedTodo.text}" task`);
+    }
+}
+export default withLDConsumer()(TodosMvc)
+```
+
+Generate a trigger for this feature
+- Go to the `Todo v2` flag on LaunchDarkly and click on the 3 Dots menu on the Test environment and select `Configuration in Environment`
+- Add a new Generic trigger type which will update Flag targetting to off
+- Copy and save the URL somewhere
+
+Sign up for New Relic One account
+- Sign up for a free New Relic Account at https://one.newrelic.com/signup and add new Browser monitoring via a snippet. Add the snippet to the `index.html` file
+- Go to New Relic, create new Alert condition for this error with Notification type of Webhook and only when issue is activated
+- Set the webhook URL to the URL from above
+- Go to https://localhost:5173/todomvc, click on `Clear completed` and try adding new entries, after some time you will see the feature get toggled off automatically
+
+![New Relic Alert will turn off the feature](image-2.png)
+
+Alternatively, you can send this curl command to toggle this flag off
+
+```bash
+curl --request POST https://app.launchdarkly.com/webhook/triggers/REST_OF_URL
+```

@@ -9,11 +9,12 @@ import { ResponseStatus } from "@servicestack/client"
 import SrcPage from "@/components/SrcPage.tsx";
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useNavigate } from "react-router-dom"
+import { withLDConsumer } from 'launchdarkly-react-client-sdk';
 
 
 export type Filter = "all" | "finished" | "unfinished"
 
-const TodosMvc = () => {
+const TodosMvc = ({flags}) => {
     const navigate = useNavigate()
     const ldClient = useLDClient();
     ldClient.on('change:feature-todos', (isEnabled) => {
@@ -33,11 +34,11 @@ const TodosMvc = () => {
     const finishedTodos = todos.filter(x => x.isFinished)
     const unfinishedTodos = todos.filter(x => !x.isFinished)
     const filteredTodos = filter == "finished"
-        ? finishedTodos
-        : filter == "unfinished"
-            ? unfinishedTodos
-            : todos
-
+    ? finishedTodos
+    : filter == "unfinished"
+    ? unfinishedTodos
+    : todos
+    
     const refreshTodos = async (errorStatus?: ResponseStatus) => {
         setError(errorStatus)
         const api = await client.api(new QueryTodos())
@@ -46,6 +47,11 @@ const TodosMvc = () => {
         }
     }
     const addTodo = async () => {
+        if (flags.todoV2) {
+            const lastFinishedTodo = finishedTodos[finishedTodos.length - 1];
+            alert(`Don't worry, you will get this one completed as quickly as "${lastFinishedTodo.text}" task`);
+        }
+
         setTodos([...todos, new Todo({id: -1, text: newTodo})])
         let api = await client.api(new CreateTodo({text: newTodo}))
         if (api.succeeded)
@@ -165,4 +171,4 @@ function FilterTab({active, className, onClick, children}: FilterTabProps) {
                }}>{children}</span>)
 }
 
-export default TodosMvc
+export default withLDConsumer()(TodosMvc)
