@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
 using MyApp.ServiceInterface;
 
+using LaunchDarkly.Sdk.Server;
+
+
 AppHost.RegisterKey();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +36,13 @@ services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, AdditionalUserC
 
 // Register all services
 services.AddServiceStack(typeof(MyServices).Assembly);
+
+// register singleton for the LdClient
+var config = Configuration.Builder(builder.Configuration.GetValue<string>("LaunchDarklySdkKey"))
+  .StartWaitTime(TimeSpan.FromSeconds(5))
+  .Build();
+var client = new LdClient(config);
+services.AddSingleton(client);
 
 var app = builder.Build();
 
