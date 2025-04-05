@@ -265,3 +265,31 @@ const TodosMvc = () => {
 ```
 
 Navigate to https://localhost:5173/todomvc, then on another tab, go to the `feature-todos` flag on LaunchDarkly and turn the flag off, you should see that the Menu item is removed and user is forcefully redirected to home
+
+# Target your Feature Flag based on Context and rule
+
+Let's assume you want to turn on the Feature flag for the new `smart weather` app only if the logged in user has `Admin` role (Assuming Admin = developers)
+
+To do this, we will use the additional context information about the logged in user to decide whether we serve the feature flag to them or not
+
+To do this
+- Access the web app at https://localhost:5173/signin and login using the `admin@email.com`, `manager@email.com` and `employee@email.com` (password is `p@55wOrd`)
+- Go to the `get-weather-v-2` flag on LaunchDarkly and click on `Add rule` button and select `Build a custom rule`
+- Select
+    - Context kind: user
+    - Attribute: roles
+    - Operator: is one of
+    - Values: `Employee,Admin,Manager`
+    - Serve: Available
+- Set default Rule to serve Unavailable 
+- Now try access the web app again using different users, you will see that only Admin user now can see the v2 of the Get Weather API 
+
+## Target specific user
+- Alternatively, you can also target individual user 
+- Go to the `get-weather-v-2` flag on LaunchDarkly and click on `Add rule` button and select `Target individuals`
+- User server `Avaiable`, select `employee@email.com`
+- Now login into the web app as `employee@email.com` and you will see that both Admin and Employee can see the new Weather V2 api
+
+
+
+
