@@ -3,8 +3,9 @@ import Logo from "@/assets/img/logo.svg?react"
 import DarkModeToggle from "@/components/DarkModeToggle"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/useAuth"
+import { withLDConsumer } from 'launchdarkly-react-client-sdk';
 
-export default () => {
+export default withLDConsumer()(({flags}) => {
     const {auth, signout} = useAuth()
 
     const navClass = ({isActive}: any) => [
@@ -25,9 +26,13 @@ export default () => {
             <div className="flex flex-grow flex-shrink flex-nowrap justify-end items-center">
                 <nav className="relative flex flex-grow leading-6 font-semibold text-slate-700 dark:text-slate-200">
                     <ul className="flex flex-wrap items-center justify-end w-full m-0">
-                        <li className="relative flex flex-wrap just-fu-start m-0">
-                            <NavLink to="/counter" className={navClass}>Counter</NavLink>
-                        </li>
+                        {flags.featureCounter === true ? (
+                                    <li className='relative flex flex-wrap just-fu-start m-0'>
+                                            <NavLink to='/counter' className={navClass}>
+                                                    Counter
+                                            </NavLink>
+                                    </li>
+                            ) : null}
                         <li className="relative flex flex-wrap just-fu-start m-0">
                             <NavLink to="/weather" className={navClass}>Weather</NavLink>
                         </li>
@@ -84,4 +89,4 @@ export default () => {
             </div>
         </div>
     </header>)
-}
+})

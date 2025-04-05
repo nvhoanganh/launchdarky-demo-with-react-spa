@@ -4,6 +4,7 @@ import 'react/jsx-runtime'
 import Layout from '@/components/Layout'
 import { Loading } from '@/components/Form'
 
+import { asyncWithLDProvider } from 'launchdarkly-react-client-sdk';
 import { ThemeProvider } from "@/components/theme-provider"
 import { StrictMode, Suspense, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -37,13 +38,20 @@ function ScrollToTop() {
     return null;
 }
 
-const app = createRoot(document.getElementById('root')!)
+const app = createRoot(document.getElementById('root')!);
 
+(async () => {
+	const LDProvider = await asyncWithLDProvider({
+		clientSideID: '67eced4cba5e88096812d4e8',
+	});
 app.render(
     <StrictMode>
         <Router>
             <ScrollToTop />
-            <App/>
+				<LDProvider>
+					<App />
+				</LDProvider>
         </Router>
-    </StrictMode>,
-)
+		</StrictMode>
+	);
+})();
