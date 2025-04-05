@@ -7,10 +7,20 @@ import { client } from "@/gateway"
 import { CreateTodo, DeleteTodo, DeleteTodos, QueryTodos, Todo, UpdateTodo } from "@/dtos"
 import { ResponseStatus } from "@servicestack/client"
 import SrcPage from "@/components/SrcPage.tsx";
+import { useLDClient } from 'launchdarkly-react-client-sdk';
+import { useNavigate } from "react-router-dom"
+
 
 export type Filter = "all" | "finished" | "unfinished"
 
 const TodosMvc = () => {
+    const navigate = useNavigate()
+    const ldClient = useLDClient();
+    ldClient.on('change:feature-todos', (isEnabled) => {
+        if (!isEnabled) {
+            navigate('/');
+        }
+    });
 
     const [newTodo, setNewTodo] = useState('')
 

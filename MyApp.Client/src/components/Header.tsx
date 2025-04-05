@@ -36,9 +36,13 @@ export default withLDConsumer()(({flags}) => {
                         <li className="relative flex flex-wrap just-fu-start m-0">
                             <NavLink to="/weather" className={navClass}>Weather</NavLink>
                         </li>
-                        <li className="relative flex flex-wrap just-fu-start m-0">
-                            <NavLink to="/todomvc" className={navClass}>Todos</NavLink>
-                        </li>
+                        {
+                            flags.featureTodos === true
+                            ? <li className="relative flex flex-wrap just-fu-start m-0">
+                                <NavLink to="/todomvc" className={navClass}>Todos</NavLink>
+                            </li>
+                            : null
+                        }
                         <li className="relative flex flex-wrap just-fu-start m-0">
                             <NavLink to="/bookings-crud" className={navClass}>Bookings</NavLink>
                         </li>

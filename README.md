@@ -216,3 +216,52 @@ public class MyServices : Service
 ```
 
 Go to the `get-weather-v-2` flag on LaunchDarkly and Toggle it on and serve `Available` to all traffic. Refresh the Weather page you now show see correct summary value being returned based on the temperature
+
+## Feature Flag - Subscribe to Flag change event and triggers
+
+Instead of using `withLDConsumer` above, you can manually subscribe to flag change event.
+
+Let's add a new `Kill switch` type flag which will turn off the `To Do` app and immediately redirect user to home
+
+Go to https://app.launchdarkly.com/projects/default/flags and create a new Flag:
+- name: `Feature: Todos`
+- Description: `This Flag control the to do app`
+- Category: `Kill switch`
+- Type: `Boolean`
+- Variations: `Enabled` and `Disabled`
+- Default variations: `Enabled` for Target ON and `Disabled` for Target OFF
+
+Edit Header.tsx, wrap `/todomvc` NavLink as follow
+
+```jsx
+// existing code
+{
+flags.featureTodos === true
+? <li className="relative flex flex-wrap just-fu-start m-0">
+    <NavLink to="/todomvc" className={navClass}>Todos</NavLink>
+  </li>
+: null
+}
+```
+
+Edit `todomvc.tsx` to force user back to Home if this feature is turned off on LaunchDarkly
+
+```jsx
+import { useLDClient } from 'launchdarkly-react-client-sdk';
+import { useNavigate } from "react-router-dom"
+
+// .. existing code
+
+const TodosMvc = () => {
+    const navigate = useNavigate()
+    const ldClient = useLDClient();
+    ldClient.on('change:feature-todos', (isEnabled) => {
+        if (!isEnabled) {
+            navigate('/');
+        }
+    });
+    // ... existing code
+}
+```
+
+Navigate to https://localhost:5173/todomvc, then on another tab, go to the `feature-todos` flag on LaunchDarkly and turn the flag off, you should see that the Menu item is removed and user is forcefully redirected to home
