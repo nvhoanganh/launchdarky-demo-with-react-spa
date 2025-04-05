@@ -4,9 +4,10 @@ import SrcPage from "@/components/SrcPage"
 import { leftPart, rightPart } from "@servicestack/client"
 import { useContext } from "react"
 import { PressContext } from "@/contexts"
+import { withLDConsumer } from 'launchdarkly-react-client-sdk';
 
 
-export default () => {
+export default withLDConsumer()(({flags}) => {
     const press = useContext(PressContext)
     const releases = press.whatsNew
 
@@ -37,6 +38,15 @@ export default () => {
                     {features.map(feature => (<div key={feature.path} className="flex flex-wrap my-24">
                         <div className="w-full sm:w-1/2 animated px-4">
                             <a href={feature.url}><img src={feature.image} alt="" loading="lazy" /></a>
+                            {
+                                flags.whatsNewV2 === true
+                                ? <div className="text-center my-10 learnMore">
+                                        <a href={feature.url} className="text-white text-lg font-bold py-4 px-6 rounded-lg outline-none focus:outline-none mr-2 mb-2 bg-gradient-to-r from-blue-500 to-purple-600 active:from-blue-600 active:to-purple-700 shadow-lg hover:shadow-xl ease-linear transition-all duration-150">
+                                            Learn more
+                                        </a>
+                                    </div>
+                                : null
+                            }
                         </div>
                         <div className="w-full sm:w-1/2 text-left wow fadeInLeft animated px-4">
                             <h3 className="m-0 mb-4">
@@ -45,11 +55,15 @@ export default () => {
                             <div className="prose dark:prose-invert max-w-none">
                                 <MarkdownComponent type="whatsNew" doc={feature} group={release} />
                             </div>
-                            <div className="text-center sm:text-left my-10">
-                                <a href={feature.url} className="text-white text-sm font-semibold py-2.5 px-3.5 rounded outline-none focus:outline-none mr-1 mb-1 bg-slate-700 active:bg-slate-600 shadow hover:shadow-lg ease-linear transition-all duration-150">
-                                    Learn more
-                                </a>
-                            </div>
+                            {
+                            !flags.whatsNewV2
+                                ? <div className="text-center sm:text-left my-10 learnMore">
+                                        <a href={feature.url} className="text-white text-sm font-semibold py-2.5 px-3.5 rounded outline-none focus:outline-none mr-1 mb-1 bg-slate-700 active:bg-slate-600 shadow hover:shadow-lg ease-linear transition-all duration-150">
+                                            Learn more
+                                        </a>
+                                    </div>
+                                : null
+                            }
                         </div>
                     </div>))}
                 </div>
@@ -59,4 +73,4 @@ export default () => {
             <SrcPage path="whatsnew.tsx"/>
         </div>
     </Layout>)
-}
+})

@@ -4,9 +4,48 @@ import DarkModeToggle from "@/components/DarkModeToggle"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/useAuth"
 import { withLDConsumer } from 'launchdarkly-react-client-sdk';
+import { useEffect } from "react";
 
-export default withLDConsumer()(({flags}) => {
+export default withLDConsumer()(({flags, ldClient}) => {
     const {auth, signout} = useAuth()
+
+    useEffect(() => {
+        const currentContext = ldClient?.getContext();
+
+        const userAgentInfo = {
+            userAgent: navigator.userAgent,
+            os: navigator.platform,
+            browser: navigator.appName,
+            version: navigator.appVersion,
+            language: navigator.language,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height
+        };
+
+        if (auth && currentContext?.anonymous) {
+            ldClient.identify({
+                key: auth.userName,
+                name: auth?.userName,
+                email: auth.userName,
+                custom: {
+                    roles: auth.roles?.join(','),
+                    ...userAgentInfo
+                },
+            });
+        } else {
+            if (!auth && ldClient) {
+                ldClient.identify({
+                    key: 'anonymous',
+                    anonymous: true,
+                    custom: {
+                        roles: 'guest',
+                        ...userAgentInfo
+                    },
+                });
+            }
+        }
+    }, [auth]);
 
     const navClass = ({isActive}: any) => [
         "p-4 flex items-center justify-start mw-full hover:text-sky-500 dark:hover:text-sky-400",

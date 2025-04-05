@@ -290,6 +290,137 @@ To do this
 - User server `Avaiable`, select `employee@email.com`
 - Now login into the web app as `employee@email.com` and you will see that both Admin and Employee can see the new Weather V2 api
 
+# Measure the impact of the new feature using Metric and Experiment
+Let's assume that you want to release a slightly improved version of the `https://localhost:5173/whatsnew` page with the goal of getting more user to click on the Learn More button. You want to compare the performance between the 2 versions to see which version will result in a better click rate
 
+## Steps
+
+Go to https://app.launchdarkly.com/projects/default/flags and create a new Flag:
+- name: `What's new v2`
+- Description: `What's new page version 2 with with Bigger and more colourful Learn more button`
+- Category: `Experiment`
+- Type: `Boolean`
+- Variations: `New Version` (true) and `Old Version` (false)
+- Default variations: `Old Version` for both Target ON and OFF
+
+Update Header.tsx to identify context for when user is logged in or not
+
+```jsx
+// ... existing code
+import { useEffect } from "react";
+
+export default withLDConsumer()(({flags, ldClient}) => {
+    const { auth, signout } = useAuth()
+
+    useEffect(() => {
+        const currentContext = ldClient?.getContext();
+
+        const userAgentInfo = {
+            userAgent: navigator.userAgent,
+            os: navigator.platform,
+            browser: navigator.appName,
+            version: navigator.appVersion,
+            language: navigator.language,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height
+        };
+
+        if (auth && currentContext?.anonymous) {
+            ldClient.identify({
+                key: auth.userName,
+                name: auth?.userName,
+                email: auth.userName,
+                custom: {
+                    roles: auth.roles?.join(','),
+                    ...userAgentInfo
+                },
+            });
+        } else {
+            if (!auth && ldClient) {
+                ldClient.identify({
+                    key: 'anonymous',
+                    anonymous: true,
+                    custom: {
+                        roles: 'guest',
+                        ...userAgentInfo
+                    },
+                });
+            }
+        }
+    }, [auth]);
+    // ... existing code
+}
+```
+
+Modify whatsnew.tsx
+
+```jsx
+// ... existing code
+import { withLDConsumer } from 'launchdarkly-react-client-sdk';
+
+export default withLDConsumer()(({flags}) => {
+    // ... existing code
+    <a href={feature.url}><img src={feature.image} alt="" loading="lazy" /></a>
+    {
+        flags.whatsNewV2 === true
+        ? <div className="text-center my-10 learnMore">
+                <a href={feature.url} className="text-white text-lg font-bold py-4 px-6 rounded-lg outline-none focus:outline-none mr-2 mb-2 bg-gradient-to-r from-blue-500 to-purple-600 active:from-blue-600 active:to-purple-700 shadow-lg hover:shadow-xl ease-linear transition-all duration-150">
+                    Learn more
+                </a>
+            </div>
+        : null
+    }
+
+    <div className="prose dark:prose-invert max-w-none">
+        <MarkdownComponent type="whatsNew" doc={feature} group={release} />
+    </div>
+    {
+        !flags.whatsNewV2
+        ? <div className="text-center sm:text-left my-10 learnMore">
+                <a href={feature.url} className="text-white text-sm font-semibold py-2.5 px-3.5 rounded outline-none focus:outline-none mr-1 mb-1 bg-slate-700 active:bg-slate-600 shadow hover:shadow-lg ease-linear transition-all duration-150">
+                    Learn more
+                </a>
+            </div>
+        : null
+    }
+    // ... existing code
+})
+```
+
+Create new Metric in LaunchDarkly
+- Kind: Clicked or tapped
+- Click targets: `.learnMore`
+- Target Type: Substring match
+- Target URL: `/whatsnew`
+- Measure: Occurence
+- Select `user` as units
+- Name: Learn More Clicked
+- Description: Number of times Learn More button was clicked
+
+Browse the app so that we have enough data in LaunchDarkly. You then can go to `Monitor > Contexts` to see the list of users with different attributes like Brower, Timezone etc.
+
+Create new Experiment
+- Name: What's New version 2
+- Hypothesis: If I make the Learn More button stand out (bigger and more colourful), it will result in more user click
+- Type: Feature change
+- Randomization Unit: Unit
+- Attributes: select a few, e.g. timezone, browser, roles, os
+- Metrics: `Learn More Clicked`
+- Flag: `What's new v2`
+- Audience: 
+    - Default rule
+    - Audience amount: 90%, 10% not in this experiment will be served `Old Version`
+    - Split experiment audience equally
+    - select `Control` on the `Old Version` 
+- Approach: Bayesian
+- Threshold: 90%
+- Start the experiment
+
+Open https://localhost:5173/whatsnew on multiple browsers (e.g Chrome, Safari) or on different private windows, login as different users in order to simulate different user
+
+After sometime, go to `What's New version 2` experiement, you should see something like this
+
+![Launch Darkly Experiment](image-1.png)
 
 
