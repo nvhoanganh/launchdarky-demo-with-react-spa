@@ -39,7 +39,7 @@ export default withLDConsumer()(({flags}) => {
                         <div className="w-full sm:w-1/2 animated px-4">
                             <a href={feature.url}><img src={feature.image} alt="" loading="lazy" /></a>
                             {
-                                flags.whatsNewV2 === true
+                                flags?.whatsNewV2 === true
                                 ? <div className="text-center my-10 learnMore">
                                         <a href={feature.url} className="text-white text-lg font-bold py-4 px-6 rounded-lg outline-none focus:outline-none mr-2 mb-2 bg-gradient-to-r from-blue-500 to-purple-600 active:from-blue-600 active:to-purple-700 shadow-lg hover:shadow-xl ease-linear transition-all duration-150">
                                             Learn more
@@ -56,7 +56,7 @@ export default withLDConsumer()(({flags}) => {
                                 <MarkdownComponent type="whatsNew" doc={feature} group={release} />
                             </div>
                             {
-                            !flags.whatsNewV2
+                            !flags?.whatsNewV2
                                 ? <div className="text-center sm:text-left my-10 learnMore">
                                         <a href={feature.url} className="text-white text-sm font-semibold py-2.5 px-3.5 rounded outline-none focus:outline-none mr-1 mb-1 bg-slate-700 active:bg-slate-600 shadow hover:shadow-lg ease-linear transition-all duration-150">
                                             Learn more

@@ -14,10 +14,11 @@ import { withLDConsumer } from 'launchdarkly-react-client-sdk';
 
 export type Filter = "all" | "finished" | "unfinished"
 
-const TodosMvc = ({flags}) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const TodosMvc = ({flags}: { flags: any}) => {
     const navigate = useNavigate()
     const ldClient = useLDClient();
-    ldClient.on('change:feature-todos', (isEnabled) => {
+    ldClient?.on('change:feature-todos', (isEnabled) => {
         if (!isEnabled) {
             navigate('/');
         }

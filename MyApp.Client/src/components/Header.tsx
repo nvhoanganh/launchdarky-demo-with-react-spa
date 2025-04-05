@@ -24,7 +24,7 @@ export default withLDConsumer()(({flags, ldClient}) => {
         };
 
         if (auth && currentContext?.anonymous) {
-            ldClient.identify({
+            ldClient?.identify({
                 key: auth.userName,
                 name: auth?.userName,
                 email: auth.userName,
@@ -65,7 +65,7 @@ export default withLDConsumer()(({flags, ldClient}) => {
             <div className="flex flex-grow flex-shrink flex-nowrap justify-end items-center">
                 <nav className="relative flex flex-grow leading-6 font-semibold text-slate-700 dark:text-slate-200">
                     <ul className="flex flex-wrap items-center justify-end w-full m-0">
-                        {flags.featureCounter === true ? (
+                        {flags?.featureCounter === true ? (
                                     <li className='relative flex flex-wrap just-fu-start m-0'>
                                             <NavLink to='/counter' className={navClass}>
                                                     Counter
@@ -76,7 +76,7 @@ export default withLDConsumer()(({flags, ldClient}) => {
                             <NavLink to="/weather" className={navClass}>Weather</NavLink>
                         </li>
                         {
-                            flags.featureTodos === true
+                            flags?.featureTodos === true
                             ? <li className="relative flex flex-wrap just-fu-start m-0">
                                 <NavLink to="/todomvc" className={navClass}>Todos</NavLink>
                             </li>

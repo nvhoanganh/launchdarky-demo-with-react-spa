@@ -1,5 +1,7 @@
 # LaunchDarkly Demo using a simple 3 tier web app (.NET 8, React)
 
+## Live Demo at https://lddemo.azurewebsites.net
+
 This repo was forked from https://github.com/NetCoreTemplates/react-spa to demonstrate some key features of LaunchDarkly:
 - Feature Flags: Add a flag to turn a new feature on or off. You can release the feature by turning the flag on, and roll it back by turning it off.
 - Instant Updates: Set up a listener so changes to the flag take effect right away—no page refresh needed.
